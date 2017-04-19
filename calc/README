@@ -1,0 +1,60 @@
+CS160 Project 1 README
+Lucas Lopilato
+
+Scanner
+--------------------------------------------------------------------------------------------------------------------
+To implement the scanner, I filled out the member functions that the parser would rely on when parsing.
+The class scanner_t holds a boolean variable needsNewToken that the member functions next_token and eat_token
+rely on. In the default constructor, the line number is set to 1 and needsNewToken is set to True (Since no
+tokens have been read in yet). The class also holds a reference of current token which is the most recently read
+token by the scanner.
+
+When the scanner's next_token() is called, the function can do one of two things. If needsNewToken is true,
+the scanner will read in the next availavle character, and try to tokenize it with the known types of tokens.
+If the character is a newline, the line number is incremented by 1. If the character is newline, space, or tab,
+the next_token is called again (effectively ignoring the whitespace). If needsNewToken is false, next_token simply
+returns currentToken, which is just the most recent read token that is stored in memory by the class. 
+
+When the scanner's eat token is called, the current token is typechecked for what is expected. If the type expected
+is not the type that is present, a mismatch_error is called. Otherwise the token is marked for deletion 
+(setting needsNewToken to True) so that next time next_token() is called, it will pase the next input char.
+--------------------------------------------------------------------------------------------------------------------
+Parser
+--------------------------------------------------------------------------------------------------------------------
+To implement the parser, I had to make sure my grammar was correct.
+
+The grammar implemented is described below
+
+List -> Expr . List
+      | e
+
+Expr -> Term E
+
+E    -> + Term E
+      | - Term E
+      | e
+
+Term -> Factor T
+
+T    -> * Factor T
+      | % Factor T
+      | e
+
+Factor -> num
+        | ( Expr )
+
+Each one of the non terminals {List, Expr, E, Term, T, Factor} is a member function implemented in the parser.
+Each Member function pushed the respective non terminal version into the parsetree when the non terminal function
+was called. After the function completed, it would pop off the item from the tree.
+
+If a non terminal's member function had only one rule, the implementation was simple. The functions (Expr and Term) 
+would call other Non terminal's member functions whenever a non terminal showed up in the grammar, or would eat
+an expected terminal from the input. 
+
+Other functions required decision making to choose the right production. For each of the non terminals, I derived
+the FIRST and the FOLLOW sets to make the proper decision. If the current token is an expected terminal, then 
+the decision is easy and the proper production would be picked. Otherwise, I would have to check the current token
+and the FOLLOW set in order to pick the epsilon transition. If the current token was not in a follow set for a 
+non terminal, you know that the expression is incorrect and unexpected.
+
+--------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,39 @@
+%{
+	#include <stdio.h>
+    #define YYDEBUG 1
+	int yylex(void);
+	void yyerror(char *);
+%}
+
+
+%%
+
+List    : List Expr '.' {printf("parsed expresion\n");}
+	| Expr '.' {printf("parsed expresion\n");}
+        ;
+
+Expr    : '(' Expr ')' 
+        | Expr '+' Term 
+        | Expr '-' Term
+        | Term
+        ;
+
+Term    : Term '*' Factor
+        | Term '%' Factor
+        | Factor
+        ;
+
+Factor  : 'n'
+        ;
+
+%%
+
+void yyerror(char *s) {
+	fprintf(stderr, "%s\n", s);
+	return;
+}
+
+int main(void) {
+	yyparse();
+	return 0;
+}

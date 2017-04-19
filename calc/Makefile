@@ -1,0 +1,59 @@
+YACC	= bison -d -y 
+LEX	= flex
+CC	= gcc
+CPP	= g++
+DEFTARGET = calc_def
+
+all: calc_def calc 
+test_def: calc_def
+	./calc_def < test.good.calc > test.good.defoutput
+	./calc_def < test.bad.calc > test.bad.defoutput
+test_parse: calc
+	./calc < test.good.calc > test.good.dot
+	./calc < test.g1 > g1.dot
+	./calc < test.g2 > g2.dot
+	-./calc < test.bad.calc > test.bad.dot
+	dot -Tps g1.dot > g1.ps
+	dot -Tps test.good.dot > test.good.ps
+	ps2pdf test.good.ps test.good.pdf
+	ps2pdf g1.ps g1.pdf
+	#ps2pdf g2.dot test.g2.pdf
+
+#Holder for unused comments
+
+	#ps2pdf test.good.ps test.good.pdf
+	#./calc < test.good.calc > test.good.dot
+	#ps2pdf test.good.ps test.good.pdf
+###############################################
+# This part makes your parse tree generator
+#
+
+calc: calc.o 
+	    $(CPP) calc.o -o calc
+calc.o: calc.cpp 
+	    $(CPP) -c calc.cpp
+
+################################################
+# This part makes the parsing definition
+#
+
+$(DEFTARGET): y.tab.o lex.yy.o
+	    $(CC) lex.yy.o y.tab.o -o $(DEFTARGET)
+y.tab.o: y.tab.c
+	    $(CC) -c y.tab.c
+y.tab.c: $(DEFTARGET).y
+	    $(YACC) $(DEFTARGET).y
+y.tab.h: $(DEFTARGET).y
+	    $(YACC) $(DEFTARGET).y
+lex.yy.o: lex.yy.c y.tab.h
+	    $(CC) -c lex.yy.c
+lex.yy.c: $(DEFTARGET).l
+	    $(LEX) $(DEFTARGET).l
+
+clean:
+	rm -f calc calc.o $(DEFTARGET) y.tab.o y.tab.c y.tab.h lex.yy.o lex.yy.c
+	rm -f test.good.defoutput test.bad.defoutput test.good.dot test.bad.dot test.good.ps test.good.pdf
+	rm -f *.dot *.pdf
+
+submit: calc
+	turnin proj1@cs160 .
